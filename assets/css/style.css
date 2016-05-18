@@ -1,25 +1,52 @@
 body {
     background-color: grey;
-    font-size: 24px;
+    font-size: 16px;
 	font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
-	color: white;
+	color: black;
 	margin-left: 20px;
 }
 #name {
 	margin-top: 10px;
 }
+#player1, #player2 {
+	text-align: center;
+}
+#wins1, #losses1, #wins2, #losses2 {
+	float: left;
+	margin-top: 30px;
+}
+#wins1, #wins2 {
+	margin-right: 20px;
+	margin-left: 80px;
+}
+#rock1, #scissors1, #paper1, #rock2, #scissors2, #paper2 {
+	margin-top:10px;
+	text-align: center;
+}
 .players {
 	margin-top: 10px;
 }
-.players1, .players3{
+.left, .right{
 	border: 1px solid black;
 	height: 200px;
 	background-color: white;
 }
-.players2{
+.middle{
 	border: 1px solid black;
 	height: 200px;
 }
 .comments {
 	margin-top: 10px;
+}
+
+.input-mysize {
+    /*text-align:center;*/
+    width: 450px;
+    float: left;
+}
+.commentsSubmit {
+	float: right;
+}
+.chosen {
+	font-size: 50px;
 }
