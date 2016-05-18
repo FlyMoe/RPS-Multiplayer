@@ -17,6 +17,18 @@ var player2 = "";
 var choice1 = "";
 var choice2 = "";
 var player = true;
+var player1Name = "";
+var player2Name = "";
+
+// Hide Divs at beginning
+$("#rock1").hide();
+$("#scissors1").hide();
+$("#paper1").hide();
+$("#rock2").hide();
+$("#scissors2").hide();
+$("#paper2").hide();
+$("#middle").empty();
+$("#playAgain").hide();
 
 
 $(document).ready(function(){
@@ -24,11 +36,17 @@ $(document).ready(function(){
 	// Clear the Database
 	dataRef.remove();
 
+	/***************** Add Player's Name ****************/
+
 	// Populating the players name in the player1 div
 	dataRef.child("player/1").on('child_added', function(snapshot) {
 		 if (snapshot.key() == "name"){
 		 	$("#player1").html(snapshot.val());
 		 }	
+		 // Show Divs Now that a name is chosen
+		$("#rock1").show();
+		$("#scissors1").show();
+		$("#paper1").show();
 	}, function (errorObject) {
 
 	    console.log("The read failed: " + errorObject.code);
@@ -40,32 +58,28 @@ $(document).ready(function(){
 		 if (snapshot.key() == "name"){
 		 	$("#player2").html(snapshot.val());
 		 }	
+		 // Show Divs Now that a name is chosen
+		$("#rock2").show();
+		$("#scissors2").show();
+		$("#paper2").show();
 	}, function (errorObject) {
 
 	    console.log("The read failed: " + errorObject.code);
 
 	}); 
 
-	// dataRef.on("child_added", function(snapshot) {
+	/***************** Add Data to FireBase ****************/
 
-	// // If any errors are experienced, log them to console. 
-	// }, function (errorObject) {
-
-	//     console.log("The read failed: " + errorObject.code);
-
-	// });
-
-
-	// Capture Button Click
+	// Capture Choices Button Click
 	$("#submitName").on("click", function() {
 	  
 	  	if (player === true){
 
 	  		// Get tje value from the input box
-	 		player1 = $('#inputName').val().trim();
+	 		player1Name = $('#inputName').val().trim();
 	 		player = false;
 	 		dataRef.update({
-				"player/1/name": player1,
+				"player/1/name": player1Name,
 				"player/1/choice": choice1,
 				"player/1/wins": player1Wins,
 				"player/1/losses": losses1
@@ -76,9 +90,9 @@ $(document).ready(function(){
 			
 	 	} else {
 
-	  		player2 = $('#inputName').val().trim();
+	  		player2Name = $('#inputName').val().trim();
 	  		dataRef.update({
-				"player/2/name": player2,
+				"player/2/name": player2Name,
 				"player/2/choice": choice2,
 				"player/2/wins": wins2,
 				"player/2/losses": losses2
@@ -90,6 +104,81 @@ $(document).ready(function(){
 	  // Don't refresh the page!
 	  return false;
 	});
+
+
+	/***************** ADD COMMENTS ****************/
+
+	// Capture Comment Button Click
+	// $("#submitComment").on("click",  function() {
+
+	// 	var comment = $('#inputComments').val().trim();
+ // 		dataRef.update({
+	// 		"chat/comment": comment
+	// 	});
+	//   	// $("#comments").html("Losses: "+player1Losses);
+
+	//   	// Don't refresh the page!
+	//  	return false;
+	// });
+
+	$('#submitComment').on('click', incId);
+
+	function incId() {
+	    // increment the counter
+	    dataRef.child('chat').transaction(function(currentValue) {
+	        return (currentValue||0) + 1
+	    }, function(err, committed, snapshot) {
+	        if( err ) {
+	           console.log(err);
+	        } else if( committed ) {
+	           // if counter update succeeds, then create record
+	           // probably want a recourse for failures too
+	           addRecord(snapshot.val()); 
+	        }
+	    });
+	    return false;
+	}
+
+	// creates new incremental record
+	function addRecord(id) {
+		var comment = $('#inputComments').val().trim();
+		alert(comment);
+	    setTimeout(function() {
+	       dataRef.child('chat').child('comment'+id).set(comment, function(err) {
+	           if( err ) {
+	           		console.log(err);
+	       	   }
+	       });        
+	    });
+
+	  //   dataRef.update({
+	 	// 	"chat/comment": comment
+	 	// });
+	}
+
+	// // creates new incremental record
+	// function addRecord(id) {
+	// 	var comment = $('#inputComments').val().trim();
+	//     setTimeout(function() {
+	//        dataRef.child('chat').child('comment'+id).set(comment, function(err) {
+	//            if( err ) {
+	//            		console.log(err);
+	//        	   }
+	//        });        
+	//     });
+	// }
+
+	dataRef.child("chat").on('child_added', function (snapshot) {
+    	
+    	var data = snapshot.val();
+    	console.log(data);
+	    // var username = data.name || "anonymous";
+	    // var message = data.text;
+	    $("#comment").html(data);
+	});
+
+
+ 	/***************** Player Choices  ****************/
 
 	// Player 1 chooses Rocks
 	$("#rock1").on("click", function() {
@@ -112,7 +201,7 @@ $(document).ready(function(){
 		$("#paper1").addClass('chosen');
 		$("#scissors1").hide();
 		$("#rock1").hide();
-		player1 = "s";
+		player1 = "p";
 	});
 
 	// Player2 chooses Rock
@@ -155,34 +244,79 @@ $(document).ready(function(){
 	});
 
 
+	/***************** PLAY AGAIN  ****************/
+
+	// Capture Choices Button Click
+	$("#playAgain").on("click", function() {
+		playAgain();
+	});
+
 });
 
 function picks() {
 
-	// Increment wins/losses/ties counters bases on what players 1 & 2 choose.
+	// Increment win/loss/tie counters bases on what players 1 & 2 choose.
 	if ((player1 == "r") && (player2 == "r")) {
 		ties = ties + 1;
 	} else if ((player1 == "r") && (player2 == "s")) {
 		player1Wins++;
 		player2Losses++;
+		$("#middle").html(player1Name+" Wins!");
 	} else if ((player1 == "r") && (player2 == "p")) {
 		player2Wins++;
 		player1Losses++;
+		$("#middle").html(player2Name+" Wins!");
 	} else if ((player1 == "s") && (player2 == "p")) {
 		player1Wins++;
 		player2Losses++;
+		$("#middle").html(player1Name+" Wins!");
 	} else if ((player1 == "s") && (player2 == "r")) {
 		player2Wins++;
 		player1Losses++;
+		$("#middle").html(player2Name+" Wins!");
 	} else if ((player1 == "s") && (player2 == "s")) {
 		ties = ties + 1;
 	} else if ((player1 == "p") && (player2 == "s")) {
 		player2Wins++;
 		player1Losses++;
+		$("#middle").html(player2Name+" Wins!");
 	} else if ((player1 == "p") && (player2 == "p")) {
 		ties = ties + 1;
 	} else if ((player1 == "p") && (player2 == "r")) {
 		player1Wins++;
 		player2Losses++;
+		$("#middle").html(player1Name+" Wins!");
+	}
+	$("#playAgain").show();
+}
+
+function playAgain() {
+
+	$("#rock1").show();
+	$("#scissors1").show();
+	$("#paper1").show();
+	$("#rock2").show();
+	$("#scissors2").show();
+	$("#paper2").show();
+	$("#middle").empty();
+	$("#playAgain").hide();
+
+	if ($("#rock1").hasClass('chosen')) {
+		$("#rock1").removeClass('chosen');
+	}
+	if ($("#rock2").hasClass('chosen')) {
+		$("#rock2").removeClass('chosen');
+	}
+	if ($("#scissors1").hasClass('chosen')) {
+		$("#scissors1").removeClass('chosen');
+	}
+	if ($("#scissors2").hasClass('chosen')) {
+		$("#scissors2").removeClass('chosen');
+	}
+	if ($("#paper1").hasClass('chosen')) {
+		$("#paper1").removeClass('chosen');
+	}
+	if ($("#paper2").hasClass('chosen')) {
+		$("#paper2").removeClass('chosen');
 	}
 }
