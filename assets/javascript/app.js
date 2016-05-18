@@ -14,11 +14,10 @@ var player2Losses = 0;
 var ties = 0;
 var player1 = "";
 var player2 = "";
-var choice1 = "";
-var choice2 = "";
 var player = true;
 var player1Name = "";
 var player2Name = "";
+var com = "";
 
 // Hide Divs at beginning
 $("#rock1").hide();
@@ -75,14 +74,14 @@ $(document).ready(function(){
 	  
 	  	if (player === true){
 
-	  		// Get tje value from the input box
+	  		// Get the value from the input box
 	 		player1Name = $('#inputName').val().trim();
 	 		player = false;
 	 		dataRef.update({
 				"player/1/name": player1Name,
-				"player/1/choice": choice1,
 				"player/1/wins": player1Wins,
-				"player/1/losses": losses1
+				"player/1/losses": player1Losses,
+				"chat/comment" : ""
 			})
 
 			// Clear the value for the input box
@@ -93,9 +92,8 @@ $(document).ready(function(){
 	  		player2Name = $('#inputName').val().trim();
 	  		dataRef.update({
 				"player/2/name": player2Name,
-				"player/2/choice": choice2,
-				"player/2/wins": wins2,
-				"player/2/losses": losses2
+				"player/2/wins": player2Wins,
+				"player/2/losses": player2Losses
 			})
 			$("#inputName").hide();
 			$("#submitName").hide();		
@@ -109,72 +107,24 @@ $(document).ready(function(){
 	/***************** ADD COMMENTS ****************/
 
 	// Capture Comment Button Click
-	// $("#submitComment").on("click",  function() {
+	$("#submitComment").on("click",  function() {
 
-	// 	var comment = $('#inputComments').val().trim();
- // 		dataRef.update({
-	// 		"chat/comment": comment
-	// 	});
-	//   	// $("#comments").html("Losses: "+player1Losses);
-
-	//   	// Don't refresh the page!
-	//  	return false;
-	// });
-
-	$('#submitComment').on('click', incId);
-
-	function incId() {
-	    // increment the counter
-	    dataRef.child('chat').transaction(function(currentValue) {
-	        return (currentValue||0) + 1
-	    }, function(err, committed, snapshot) {
-	        if( err ) {
-	           console.log(err);
-	        } else if( committed ) {
-	           // if counter update succeeds, then create record
-	           // probably want a recourse for failures too
-	           addRecord(snapshot.val()); 
-	        }
-	    });
-	    return false;
-	}
-
-	// creates new incremental record
-	function addRecord(id) {
 		var comment = $('#inputComments').val().trim();
-		alert(comment);
-	    setTimeout(function() {
-	       dataRef.child('chat').child('comment'+id).set(comment, function(err) {
-	           if( err ) {
-	           		console.log(err);
-	       	   }
-	       });        
-	    });
+ 		dataRef.update({
+			"chat/comment": comment
+		});
 
-	  //   dataRef.update({
-	 	// 	"chat/comment": comment
-	 	// });
-	}
+	  	// Don't refresh the page!
+	 	return false;
+	});
 
-	// // creates new incremental record
-	// function addRecord(id) {
-	// 	var comment = $('#inputComments').val().trim();
-	//     setTimeout(function() {
-	//        dataRef.child('chat').child('comment'+id).set(comment, function(err) {
-	//            if( err ) {
-	//            		console.log(err);
-	//        	   }
-	//        });        
-	//     });
-	// }
-
-	dataRef.child("chat").on('child_added', function (snapshot) {
+	dataRef.child("chat").on('value', function (snapshot) {
     	
     	var data = snapshot.val();
-    	console.log(data);
-	    // var username = data.name || "anonymous";
-	    // var message = data.text;
-	    $("#comment").html(data);
+    	var comment = $('#inputComments').val().trim();
+		var box = $("#comment"); 
+ 		box.val(box.val() + data.comment + '\n');
+
 	});
 
 
@@ -258,6 +208,7 @@ function picks() {
 	// Increment win/loss/tie counters bases on what players 1 & 2 choose.
 	if ((player1 == "r") && (player2 == "r")) {
 		ties = ties + 1;
+		$("#middle").html("It's a tie!");
 	} else if ((player1 == "r") && (player2 == "s")) {
 		player1Wins++;
 		player2Losses++;
@@ -276,18 +227,64 @@ function picks() {
 		$("#middle").html(player2Name+" Wins!");
 	} else if ((player1 == "s") && (player2 == "s")) {
 		ties = ties + 1;
+		$("#middle").html("It's a tie!");
 	} else if ((player1 == "p") && (player2 == "s")) {
 		player2Wins++;
 		player1Losses++;
 		$("#middle").html(player2Name+" Wins!");
 	} else if ((player1 == "p") && (player2 == "p")) {
 		ties = ties + 1;
+		$("#middle").html("It's a tie!");
 	} else if ((player1 == "p") && (player2 == "r")) {
 		player1Wins++;
 		player2Losses++;
 		$("#middle").html(player1Name+" Wins!");
 	}
 	$("#playAgain").show();
+
+	choices();
+	dataRef.update({
+		"player/1/wins": player1Wins,
+		"player/1/losses": player1Losses,
+		"player/2/wins": player2Wins,
+		"player/2/losses": player2Losses
+	})
+
+}
+
+function choices(){
+
+	var choice1 = "";
+	var choice2 = "";
+
+	switch(player1) {
+	    case "p":
+	        choice1 = "paper";
+	        break;
+	    case "r":
+	         choice1 = "rock";
+	        break;
+	    case "s":
+	         choice1 = "scissors";
+	        break;
+	}
+
+	switch(player2) {
+	    case "p":
+	        choice2 = "paper";
+	        break;
+	    case "r":
+	         choice2 = "rock";
+	        break;
+	    case "s":
+	         choice2 = "scissors";
+	        break;
+	}
+
+	dataRef.update({
+		"player/1/choice": choice1,
+		"player/2/choice": choice2
+	})
 }
 
 function playAgain() {
